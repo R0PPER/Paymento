@@ -1,0 +1,57 @@
+body {
+  font-family: Arial, sans-serif;
+  background-color: #f5f5f5;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  margin: 0;
+}
+.container {
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  width: 300px;
+  text-align: center;
+}
+input {
+  width: 93%;
+  padding: 10px;
+  margin: 10px 0;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+button {
+  width: 100%;
+  padding: 10px;
+  background: #6a8d92;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+button:hover {
+  background: #4a6c6f;
+}
+.transactions {
+  margin-top: 20px;
+  width: 300px;
+}
+
+.transactions-title {
+}
+
+.transaction {
+  padding: 10px;
+  border-radius: 5px;
+  margin-bottom: 5px;
+  color: white;
+}
+.approved {
+  background: #80b192;
+}
+.declined {
+  background: #ed474a;
+}

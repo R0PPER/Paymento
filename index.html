@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="./src/css/style.css" />
+    <script type="module" src="./src/js/controller.js" defer></script>
+
+    <title>Card Payment UI</title>
+  </head>
+  <body>
+    <form class="container">
+      <h2 class="container-title">Card Payment</h2>
+      <input type="text" placeholder="Card Number" />
+      <input id="expiry-date" type="text" placeholder="MM/YY" />
+      <input type="text" placeholder="CVV" />
+      <button>Pay Now</button>
+    </form>
+
+    <div class="transactions">
+      <h3 class="transactions-title">Transaction History</h3>
+      <div class="transaction approved">Approved - $50</div>
+      <div class="transaction declined">Declined - $20</div>
+    </div>
+  </body>
+</html>
