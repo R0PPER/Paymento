@@ -11,10 +11,10 @@
   <body>
     <form class="container">
       <h2 class="container-title">Card Payment</h2>
-      <input type="text" placeholder="Card Number" />
+      <input id="card-number" type="text" placeholder="Card Number" />
       <input id="expiry-date" type="text" placeholder="MM/YY" />
-      <input type="text" placeholder="CVV" />
-      <button>Pay Now</button>
+      <input id="cvv" type="text" placeholder="CVV" />
+      <button id="submit-btn">Pay Now</button>
     </form>
 
     <div class="transactions">
@@ -22,5 +22,7 @@
       <div class="transaction approved">Approved - $50</div>
       <div class="transaction declined">Declined - $20</div>
     </div>
+
+    <script type="module" src="./firebase.js"></script>
   </body>
 </html>

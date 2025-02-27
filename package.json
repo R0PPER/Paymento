@@ -1,0 +1,12 @@
+{
+  "scripts": {
+    "start": "vite",
+    "build": "vite build"
+  },
+  "dependencies": {
+    "firebase": "^11.3.1"
+  },
+  "devDependencies": {
+    "vite": "^6.2.0"
+  }
+}
