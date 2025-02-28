@@ -61,3 +61,81 @@ button:hover {
   font-size: 0.9rem;
   margin-top: 0.5rem;
 }
+
+.modal {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 10%;
+  height: 30%;
+
+  background-color: white;
+  padding: 6rem;
+  border-radius: 5px;
+  box-shadow: 0 3rem 5rem rgba(0, 0, 0, 0.3);
+  z-index: 10;
+}
+
+.modal-title {
+  text-align: center;
+  margin-bottom: 3rem;
+  margin-top: -0.6rem;
+}
+
+.modal-input {
+  position: absolute;
+  transform: translate(-50%, -10%);
+  left: 50%;
+  width: 40%;
+  height: 20%;
+  text-align: center;
+  font-size: 2rem;
+
+  border-radius: 5px;
+  border: 2px solid #4a6c6f;
+  padding: 1rem;
+}
+
+.modal-input:focus {
+  outline: none;
+  border: 2px solid #364f53;
+}
+
+.modal-btn {
+  position: absolute;
+  left: 50%;
+  height: 7.6%;
+  min-height: 2rem;
+  transform: translate(-50%, -50%);
+  width: 52%;
+  text-align: center;
+}
+
+.pay-btn {
+  bottom: 16%;
+}
+
+.close-modal-btn {
+  bottom: 7%;
+  background: #ed6a5a;
+}
+
+.close-modal-btn:hover {
+  background: #be3320;
+}
+
+.overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(3px);
+  z-index: 5;
+}
+
+.hidden {
+  display: none;
+}

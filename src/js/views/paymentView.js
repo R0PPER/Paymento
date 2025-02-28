@@ -1,4 +1,5 @@
 import View from "./view.js";
+import modalView from "./modalView.js";
 
 class PaymentView extends View {
   _parentEl = document.querySelector(".container");
@@ -29,6 +30,7 @@ class PaymentView extends View {
     );
     this._cvv.addEventListener("input", this._formatCVV.bind(this));
   }
+
   // Format card number with spaces
   _formatCardNumber() {
     let value = this._cardNumber.value.replace(/\D/g, ""); // Remove non-digits

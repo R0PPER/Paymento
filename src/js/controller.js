@@ -1,5 +1,6 @@
 import * as model from "./model.js";
 import paymentView from "./views/paymentView.js";
+import modalView from "./views/modalView.js";
 
 const controlPayment = async function (userInput) {
   try {
@@ -14,7 +15,11 @@ const controlPayment = async function (userInput) {
       throw new Error("Invalid CVV.");
     }
 
+    // Log validation success
     console.log("Validation successful!");
+
+    //Open modal only if card is valid
+    modalView.openModal();
   } catch (error) {
     console.error("Payment failed:", error.message);
     throw error;
@@ -36,6 +41,8 @@ const controlPayment = async function (userInput) {
 const init = function () {
   paymentView.addInputListeners(); // Add input formatting
   paymentView.addHandlerSubmit(controlPayment); // Handle form submission
+  modalView.addCloseModalListeners();
+
   // loadTransactions(); // Load past transactions
 };
 
