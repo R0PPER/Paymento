@@ -10,6 +10,32 @@
   </head>
   <body>
     <form class="container">
+      <div class="card-info-box">
+        <h3>Supported Card Types</h3>
+        <ul>
+          <li>
+            <strong>Visa:</strong> Starts with 4, 13-19 digits, 3-digit CVV
+          </li>
+          <li>
+            <strong>MasterCard:</strong> Starts with 51-55 or 2221-2720, 16
+            digits, 3-digit CVV
+          </li>
+          <li>
+            <strong>American Express:</strong> Starts with 34 or 37, 15 digits,
+            4-digit CVV
+          </li>
+          <li>
+            <strong>Discover:</strong> Starts with 65 or 6011, 16-19 digits,
+            3-digit CVV
+          </li>
+          <p>
+            <strong
+              >*Year/Month cant be in the past or more than 10 years in the
+              future*</strong
+            >
+          </p>
+        </ul>
+      </div>
       <h2 class="container-title">Card Payment</h2>
       <input id="card-number" type="text" placeholder="Card Number" />
       <input id="expiry-date" type="text" placeholder="MM/YY" />
@@ -19,8 +45,8 @@
 
     <div class="transactions">
       <h3 class="transactions-title">Transaction History</h3>
-      <div class="transaction approved">Approved - $50</div>
-      <div class="transaction declined">Declined - $20</div>
+      <div class="transaction"></div>
+      <button class="clear-transactions-btn">Clear History</button>
     </div>
 
     <div class="modal hidden">

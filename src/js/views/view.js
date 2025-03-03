@@ -1,6 +1,16 @@
 export default class View {
   _clear() {
-    this._parentElement.innerHTML = "";
+    this._parentEl.innerHTML = "";
+  }
+
+  renderSpinner() {
+    const markup = `
+      <div class="spinner">
+        <div class="spinner__ring"></div>
+      </div>
+    `;
+    this._clear();
+    this._parentEl.insertAdjacentHTML("afterbegin", markup);
   }
 
   renderError(message = this._errorMessage) {
@@ -10,7 +20,7 @@ export default class View {
       </div>
     `;
     this._clear();
-    this._parentElement.insertAdjacentHTML("afterbegin", markup);
+    this._parentEl.insertAdjacentHTML("afterbegin", markup);
   }
 
   renderMessage(message = this._message) {
@@ -20,6 +30,6 @@ export default class View {
       </div>
     `;
     this._clear();
-    this._parentElement.insertAdjacentHTML("afterbegin", markup);
+    this._parentEl.insertAdjacentHTML("afterbegin", markup);
   }
 }
