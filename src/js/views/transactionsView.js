@@ -3,20 +3,27 @@ import View from "./view.js";
 class TransactionsView extends View {
   _parentEl = document.querySelector(".transaction");
   _clearButton = document.querySelector(".clear-transactions-btn");
+  _errorMessage = "No transactions found. Add some!";
+  _message = "Transactions loaded successfully";
 
   constructor() {
     super();
-    // This will ensure the constructor logic runs when the class is instantiated
+    // This ensures the constructor logic runs when the class is instantiated
   }
 
   render(transactions) {
-    this._parentEl.innerHTML = ""; // Clear previous data
+    // Update the clear button visibility first
+    this._updateClearButtonVisibility(transactions);
 
     if (!transactions || transactions.length === 0) {
-      this._parentEl.innerHTML = "<p>No transactions found.</p>";
+      this.renderError();
       return;
     }
 
+    // Clear previous content
+    this._clear();
+
+    // Render each transaction
     transactions.forEach((tx) => {
       // Format the timestamp - handle both server timestamp and client fallback
       let formattedDate = "Processing...";
@@ -38,6 +45,30 @@ class TransactionsView extends View {
     });
   }
 
+  // Override parent methods to add button visibility logic
+  renderSpinner() {
+    // Hide clear button during loading
+    this._clearButton.style.display = "none";
+    // Call parent method
+    super.renderSpinner();
+  }
+
+  renderError(message = this._errorMessage) {
+    // Hide clear button when there's an error
+    this._clearButton.style.display = "none";
+    // Call parent method
+    super.renderError(message);
+  }
+
+  // Helper method to update clear button visibility
+  _updateClearButtonVisibility(transactions) {
+    if (!transactions || transactions.length === 0) {
+      this._clearButton.style.display = "none";
+    } else {
+      this._clearButton.style.display = "block";
+    }
+  }
+
   // Add event listeners for transactions functionality
   addHandlerRender(handler) {
     window.addEventListener("DOMContentLoaded", handler);
@@ -47,8 +78,17 @@ class TransactionsView extends View {
     if (!this._clearButton) return; // Guard clause if button doesn't exist
 
     this._clearButton.addEventListener("click", async () => {
-      await handler();
-      this.render([]); // Clear UI after transactions are deleted
+      // Show spinner while clearing
+      this.renderSpinner();
+
+      try {
+        await handler();
+        // After clearing, render empty state
+        this.render([]);
+      } catch (error) {
+        console.error("Error clearing transactions:", error);
+        this.renderError("Failed to clear transactions. Please try again.");
+      }
     });
   }
 }

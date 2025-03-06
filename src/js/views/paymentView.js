@@ -1,15 +1,11 @@
 import View from "./view.js";
-import modalView from "./modalView.js";
 
 class PaymentView extends View {
   _parentEl = document.querySelector(".container");
-
   _cardNumber = document.querySelector("#card-number");
   _expiryDate = document.querySelector("#expiry-date");
   _cvv = document.querySelector("#cvv");
-  _submitBtn = document.querySelector("#submit-btn");
 
-  // Get user input
   getInput() {
     return {
       cardNumber: this._cardNumber.value.trim(),
@@ -18,7 +14,6 @@ class PaymentView extends View {
     };
   }
 
-  // Add input validation listeners
   addInputListeners() {
     this._expiryDate.addEventListener(
       "input",
@@ -31,43 +26,30 @@ class PaymentView extends View {
     this._cvv.addEventListener("input", this._formatCVV.bind(this));
   }
 
-  // Format card number with spaces
   _formatCardNumber() {
-    let value = this._cardNumber.value.replace(/\D/g, ""); // Remove non-digits
-    this._cardNumber.value = value.slice(0, 19); // Limit to 16 digits + spaces
+    this._cardNumber.value = this._cardNumber.value
+      .replace(/\D/g, "")
+      .slice(0, 19);
   }
 
-  // Format expiry date as MM/YY
   _formatExpiryDate() {
-    let value = this._expiryDate.value.replace(/\D/g, ""); // Remove non-digits
-
-    // Ensure month is not greater than 12
+    let value = this._expiryDate.value.replace(/\D/g, "");
     if (value.length >= 2) {
-      const month = value.slice(0, 2);
-      if (Number(month) > 12) {
-        value = "12" + value.slice(2); // Cap month at 12
-      }
+      const month = Math.min(Number(value.slice(0, 2)), 12);
+      value = month.toString().padStart(2, "0") + value.slice(2);
     }
-
-    // Add slash after month
-    if (value.length >= 3) {
-      value = value.slice(0, 2) + "/" + value.slice(2, 4); // Add slash
-    }
-
-    // Limit to MM/YY format
+    if (value.length >= 3) value = value.slice(0, 2) + "/" + value.slice(2, 4);
     this._expiryDate.value = value.slice(0, 5);
   }
 
-  // Format CVV (3-4 digits)
   _formatCVV() {
-    let value = this._cvv.value.replace(/\D/g, ""); // Remove non-digits
-    this._cvv.value = value.slice(0, 4); // Limit to 4 digits
+    this._cvv.value = this._cvv.value.replace(/\D/g, "").slice(0, 4);
   }
 
   addHandlerSubmit(handler) {
     this._parentEl.addEventListener("submit", (e) => {
-      e.preventDefault(); // Prevents page reload
-      handler(this.getInput()); // Pass input data to controller
+      e.preventDefault();
+      handler(this.getInput());
     });
   }
 }

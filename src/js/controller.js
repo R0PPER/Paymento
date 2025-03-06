@@ -17,17 +17,23 @@ const controlPayment = async function (userInput) {
     if (!cardNumber || !expiryDate || !cvv)
       throw new Error("Missing payment details.");
     if (!model.validateCardNumber(cardNumber))
-      throw new Error("Invalid card number.");
+      throw new Error("Invalid card number. Please check the format.");
     if (!model.validateExpiryDate(expiryDate))
-      throw new Error("Invalid expiry date.");
-    if (!model.validateCVV(cvv, cardNumber)) throw new Error("Invalid CVV.");
+      throw new Error(
+        "Invalid expiry date. Format should be MM/YY, not expired or more than 10 years in the future."
+      );
+    if (!model.validateCVV(cvv, cardNumber))
+      throw new Error("Invalid CVV. Should be 3 digits (4 for Amex).");
 
     console.log("Validation successful!");
 
-    // Open modal for additional input
+    // Open modal for amount input (no error)
     modalView.openModal();
   } catch (error) {
     console.error("Payment failed:", error.message);
+
+    // Open modal with error message
+    modalView.openModal(error.message);
   }
 };
 
@@ -42,9 +48,6 @@ const handleModalPayment = async function () {
     model.state.userInput.amount = amount;
     console.log("Updated state with amount:", model.state.userInput);
 
-    // Ensure card details are still present
-    console.log("Checking before processing:", model.state.userInput);
-
     // Process the payment and wait for it to complete
     await model.handlePayment(model.state.userInput);
 
@@ -55,6 +58,8 @@ const handleModalPayment = async function () {
     modalView.closeModal();
   } catch (error) {
     console.error("Payment failed:", error.message);
+    // Show error in modal without closing it
+    modalView.openModal(error.message);
   }
 };
 
@@ -87,6 +92,7 @@ const init = function () {
   transactionsView.addHandlerRender(controlTransactions);
   transactionsView.addHandlerClearTransactions(async () => {
     await model.clearTransactions();
+    controlTransactions(); // Refresh transactions view after clearing
   });
 
   // Initial load of transactions

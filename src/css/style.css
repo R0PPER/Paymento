@@ -169,6 +169,11 @@ button:hover {
   border: 2px solid #364f53;
 }
 
+.modal-input::placeholder {
+  color: #888;
+  margin-left: -1.2rem;
+}
+
 .modal-btn {
   position: absolute;
   left: 50%;
@@ -176,6 +181,13 @@ button:hover {
   min-height: 2rem;
   transform: translate(-50%, -50%);
   width: 52%;
+  text-align: center;
+}
+
+.modal-message {
+  color: #be3320;
+  font-size: 1.3rem;
+  margin-bottom: 10px;
   text-align: center;
 }
 
