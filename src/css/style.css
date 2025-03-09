@@ -40,6 +40,7 @@ input {
   border: 1px solid #ccc;
   border-radius: 5px;
 }
+
 button {
   width: 100%;
   padding: 10px;
@@ -49,9 +50,11 @@ button {
   border-radius: 5px;
   cursor: pointer;
 }
+
 button:hover {
   background: #4a6c6f;
 }
+
 .transactions {
   margin-top: 20px;
   width: 320px;
@@ -69,6 +72,12 @@ button:hover {
   color: #333;
 }
 
+.transaction-list-container {
+  max-height: 17.5rem; /* Adjust height as needed */
+  overflow-y: auto; /* Enable vertical scrolling */
+  overflow-x: hidden;
+}
+
 .transaction {
   display: flex;
   min-height: 6rem;
@@ -78,7 +87,7 @@ button:hover {
 
 .transaction-list {
   background: #f0f0f0;
-  padding: 12px;
+  padding: 10px;
   border-radius: 8px;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
   transition: transform 0.2s ease-in-out;
@@ -91,8 +100,8 @@ button:hover {
 .transaction-list p {
   text-align: left;
   margin: 5px 0;
-  font-size: 0.95rem;
   color: #444;
+  font-size: 0.85rem;
 }
 
 .transaction-list strong {
@@ -105,6 +114,26 @@ button:hover {
 
 .transaction-list:nth-child(even) {
   background: #d9edf7;
+}
+
+/* Stylish scrollbar */
+.transaction-list-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+.transaction-list-container::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 4px;
+}
+
+.transaction-list-container::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+  transition: background 0.2s ease;
+}
+
+.transaction-list-container::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.4);
 }
 
 .clear-transactions-btn {
@@ -185,7 +214,7 @@ button:hover {
 }
 
 .modal-message {
-  color: #be3320;
+  /* color: #be3320; */
   font-size: 1.3rem;
   margin-bottom: 10px;
   text-align: center;
@@ -242,4 +271,14 @@ button:hover {
   100% {
     transform: rotate(360deg);
   }
+}
+
+.success {
+  color: #57a773 !important;
+  font-weight: bold;
+}
+
+.fit-content {
+  height: fit-content;
+  min-height: fit-content;
 }

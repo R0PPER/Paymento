@@ -48,15 +48,24 @@ const handleModalPayment = async function () {
     model.state.userInput.amount = amount;
     console.log("Updated state with amount:", model.state.userInput);
 
+    // Start loading animation - this needs to fully run
+    modalView.renderPaymentProcessingIndicator();
+
+    // IMPORTANT: We need to wait for the animation to complete BEFORE doing anything else
+    // and we shouldn't close the modal manually since the animation handles that
+
     // Process the payment and wait for it to complete
     await model.handlePayment(model.state.userInput);
 
-    // Update UI after payment completes
-    await controlTransactions();
+    // Only update transactions after the payment animation is complete
+    // The setTimeout in renderPaymentProcessingIndicator should handle this
+    setTimeout(async () => {
+      await controlTransactions();
+    }, 7000); // Wait for animation to fully complete (3s processing + 2s success)
 
-    // Close modal
-    modalView.closeModal();
+    // Remove any explicit closeModal call here - let the animation handle it
   } catch (error) {
+    modalView.stopPaymentProcessingIndicator();
     console.error("Payment failed:", error.message);
     // Show error in modal without closing it
     modalView.openModal(error.message);
