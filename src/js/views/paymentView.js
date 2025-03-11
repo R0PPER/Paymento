@@ -1,10 +1,17 @@
+/**
+ * /views/paymentView.js - Payment form view
+ */
+
 import View from "./view.js";
 
 class PaymentView extends View {
-  _parentEl = document.querySelector(".container");
-  _cardNumber = document.querySelector("#card-number");
-  _expiryDate = document.querySelector("#expiry-date");
-  _cvv = document.querySelector("#cvv");
+  constructor() {
+    super(".container");
+    this._cardNumber = document.querySelector("#card-number");
+    this._expiryDate = document.querySelector("#expiry-date");
+    this._cvv = document.querySelector("#cvv");
+    this._form = document.querySelector(".container");
+  }
 
   getInput() {
     return {
@@ -12,6 +19,35 @@ class PaymentView extends View {
       expiryDate: this._expiryDate.value.trim(),
       cvv: this._cvv.value.trim(),
     };
+  }
+
+  resetForm() {
+    this._cardNumber.value = "";
+    this._expiryDate.value = "";
+    this._cvv.value = "";
+  }
+
+  updateStatus(status) {
+    super.updateStatus(status);
+
+    // Handle different statuses
+    switch (status) {
+      case "success":
+        this.resetForm();
+        break;
+      case "idle":
+        // Enable form fields
+        this._cardNumber.disabled = false;
+        this._expiryDate.disabled = false;
+        this._cvv.disabled = false;
+        break;
+      case "processing":
+        // Disable form during processing
+        this._cardNumber.disabled = true;
+        this._expiryDate.disabled = true;
+        this._cvv.disabled = true;
+        break;
+    }
   }
 
   addInputListeners() {
@@ -47,7 +83,7 @@ class PaymentView extends View {
   }
 
   addHandlerSubmit(handler) {
-    this._parentEl.addEventListener("submit", (e) => {
+    this._form.addEventListener("submit", (e) => {
       e.preventDefault();
       handler(this.getInput());
     });

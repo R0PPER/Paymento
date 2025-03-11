@@ -1,5 +1,15 @@
+/**
+ * VIEWS
+ * /views/view.js - Base View class
+ */
+
 export default class View {
+  constructor(parentEl) {
+    if (parentEl) this._parentEl = document.querySelector(parentEl);
+  }
+
   _clear() {
+    if (!this._parentEl) return;
     this._parentEl.innerHTML = "";
   }
 

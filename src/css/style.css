@@ -137,6 +137,7 @@ button:hover {
 }
 
 .clear-transactions-btn {
+  display: none;
   width: 100%;
   padding: 10px;
   background: #ed6a5a;
@@ -153,7 +154,7 @@ button:hover {
 }
 
 .error-message {
-  color: red;
+  color: #ed6a5a;
   font-size: 0.9rem;
   margin-top: 0.5rem;
 }

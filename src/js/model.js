@@ -1,3 +1,8 @@
+/**
+ * MODEL
+ * model.js - Handles data and business logic
+ */
+
 import { db } from "../../firebase.js";
 import {
   collection,
@@ -10,185 +15,236 @@ import {
   doc,
 } from "firebase/firestore";
 
+// Centralized state management
 export const state = {
   userInput: {
     cardNumber: "",
     expiryDate: "",
     cvv: "",
-    amount: null, // Initially null since amount is entered later
+    amount: null,
   },
-  transactions: [], // This will be updated with Firebase data
-  currentStatus: "idle", // Possible states: "idle", "processing", "success", "error"
+  transactions: [],
+  currentStatus: "idle", // "idle", "processing", "success", "error"
 };
 
-// Function to validate card number (basic check)
-export const validateCardNumber = function (cardNumber) {
-  return /^\d{13,19}$/.test(cardNumber); // Card number must be between 13-19 digits
+// Card validators
+const validators = {
+  // Card number validation (13-19 digits)
+  cardNumber: (cardNumber) => /^\d{13,19}$/.test(cardNumber),
+
+  // Expiry date validation (MM/YY format, not expired, not > 10 years in future)
+  expiryDate: (expiryDate) => {
+    if (!/^\d{2}\/\d{2}$/.test(expiryDate)) return false;
+
+    const [month, year] = expiryDate.split("/").map(Number);
+    const currentYear = new Date().getFullYear() % 100;
+    const currentMonth = new Date().getMonth() + 1;
+
+    return !(
+      month < 1 ||
+      month > 12 ||
+      year < currentYear ||
+      year > currentYear + 10 ||
+      (year === currentYear && month < currentMonth)
+    );
+  },
+
+  // CVV validation based on card type
+  cvv: (cvv, cardNumber) => {
+    if (!cvv || !/^[0-9]+$/.test(cvv)) return false;
+
+    const length = cvv.length;
+    const cardType = identifyCardType(cardNumber);
+
+    return (
+      (length === 3 && ["Visa", "MasterCard", "Discover"].includes(cardType)) ||
+      (length === 4 && cardType === "American Express")
+    );
+  },
+
+  // Amount validation
+  amount: (amount) => {
+    const numAmount = Number(amount);
+    return !isNaN(numAmount) && numAmount > 0;
+  },
 };
 
-// Function to validate expiry date
-export const validateExpiryDate = function (expiryDate) {
-  if (!/^\d{2}\/\d{2}$/.test(expiryDate)) return false;
+// Export validation functions
+export const validateCardNumber = validators.cardNumber;
+export const validateExpiryDate = validators.expiryDate;
+export const validateCVV = validators.cvv;
+export const validateAmount = validators.amount;
 
-  const [month, year] = expiryDate.split("/").map(Number);
-  const currentYear = new Date().getFullYear() % 100;
-  const currentMonth = new Date().getMonth() + 1;
+// Validate all payment details at once
+export const validatePaymentDetails = ({
+  cardNumber,
+  expiryDate,
+  cvv,
+  amount,
+}) => {
+  const validations = [
+    { isValid: !!cardNumber, message: "Card number is required." },
+    { isValid: !!expiryDate, message: "Expiry date is required." },
+    { isValid: !!cvv, message: "CVV is required." },
+    {
+      isValid: validators.cardNumber(cardNumber),
+      message: "Invalid card number. Please check the format.",
+    },
+    {
+      isValid: validators.expiryDate(expiryDate),
+      message:
+        "Invalid expiry date. Format should be MM/YY, not expired or 10+ years in the future.",
+    },
+    {
+      isValid: validators.cvv(cvv, cardNumber),
+      message: "Invalid CVV. Should be 3 digits (4 for Amex).",
+    },
+  ];
 
-  if (month < 1 || month > 12) return false;
-  if (year < currentYear || year > currentYear + 10) return false;
-  if (year === currentYear && month < currentMonth) return false;
+  // Add amount validation if provided
+  if (amount !== null && amount !== undefined) {
+    validations.push({
+      isValid: validators.amount(amount),
+      message: "Invalid amount. Please enter a positive number.",
+    });
+  }
 
-  return true;
+  // Find first validation failure, if any
+  const failedValidation = validations.find((v) => !v.isValid);
+  if (failedValidation) {
+    return { valid: false, message: failedValidation.message };
+  }
+
+  return { valid: true };
 };
 
 // Identify card type based on number
-const identifyCardType = function (cardNumber) {
+export const identifyCardType = (cardNumber) => {
   if (!cardNumber) return "Unknown";
+
   const length = cardNumber.length;
   const firstTwo = parseInt(cardNumber.substring(0, 2), 10);
   const firstFour = parseInt(cardNumber.substring(0, 4), 10);
 
   if (length >= 13 && length <= 19 && cardNumber.startsWith("4")) return "Visa";
+
   if (
     (length === 16 && firstFour >= 2221 && firstFour <= 2720) ||
     (length === 16 && firstTwo >= 51 && firstTwo <= 55)
   )
     return "MasterCard";
+
   if (length === 15 && (firstTwo === 34 || firstTwo === 37))
     return "American Express";
+
   if (length >= 16 && length <= 19 && (firstTwo === 65 || firstFour === 6011))
     return "Discover";
 
   return "Unknown Card Type";
 };
 
-// Function to validate CVV based on card type
-export const validateCVV = function (cvv, cardNumber) {
-  if (!cvv || !/^[0-9]+$/.test(cvv)) return false;
+// Firebase operations
+export const firebaseOperations = {
+  // Save transaction to Firestore (only last 4 digits for security)
+  saveTransaction: async (userInput) => {
+    try {
+      const transactionData = {
+        cardNumber: userInput.cardNumber.slice(-4),
+        expiryDate: userInput.expiryDate,
+        amount: userInput.amount,
+        timestamp: serverTimestamp(),
+      };
 
-  const length = cvv.length;
-  const cardType = identifyCardType(cardNumber);
+      const transactionRef = await addDoc(
+        collection(db, "transactions"),
+        transactionData
+      );
+      console.log(`✅ Transaction saved with ID: ${transactionRef.id}`);
+      return transactionRef.id;
+    } catch (error) {
+      console.error("❌ Error saving transaction:", error);
+      throw error;
+    }
+  },
 
-  if (length === 3 && ["Visa", "MasterCard", "Discover"].includes(cardType))
-    return true;
-  if (length === 4 && cardType === "American Express") return true;
+  // Get past transactions from Firestore
+  getTransactions: async () => {
+    try {
+      const transactionsRef = collection(db, "transactions");
+      const q = query(transactionsRef, orderBy("timestamp", "desc"));
+      const querySnapshot = await getDocs(q);
 
-  return false;
+      let transactions = [];
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        // Add a client-side fallback timestamp if server timestamp isn't ready yet
+        if (!data.timestamp) {
+          data.timestamp = { seconds: Date.now() / 1000, nanoseconds: 0 };
+        }
+        transactions.push({ id: doc.id, ...data });
+      });
+
+      console.log("📜 Retrieved transactions:", transactions);
+      return transactions;
+    } catch (error) {
+      console.error("❌ Error fetching transactions:", error);
+      throw error;
+    }
+  },
+
+  // Clear all transactions
+  clearTransactions: async () => {
+    try {
+      const querySnapshot = await getDocs(collection(db, "transactions"));
+      const deletePromises = querySnapshot.docs.map((docSnap) =>
+        deleteDoc(doc(db, "transactions", docSnap.id))
+      );
+      await Promise.all(deletePromises);
+      console.log("✅ All transactions deleted!");
+      return true;
+    } catch (error) {
+      console.error("❌ Error deleting transactions:", error);
+      throw error;
+    }
+  },
 };
 
-// Save transaction to Firestore
-async function saveTransaction(userInput) {
-  try {
-    const transactionRef = await addDoc(collection(db, "transactions"), {
-      cardNumber: userInput.cardNumber.slice(-4), // Save only last 4 digits for security
-      expiryDate: userInput.expiryDate,
-      amount: userInput.amount,
-      timestamp: serverTimestamp(),
-    });
-    console.log(`✅ Transaction saved with ID: ${transactionRef.id}`);
-  } catch (error) {
-    console.error("❌ Error saving transaction:", error);
-  }
-}
-
-// Get past transactions from Firestore
-export async function getTransactions() {
-  try {
-    const transactionsRef = collection(db, "transactions");
-    const q = query(transactionsRef, orderBy("timestamp", "desc"));
-    const querySnapshot = await getDocs(q);
-
-    let transactions = [];
-    querySnapshot.forEach((doc) => {
-      const data = doc.data();
-      // Add a client-side fallback timestamp if server timestamp isn't ready yet
-      if (!data.timestamp) {
-        data.timestamp = { seconds: Date.now() / 1000, nanoseconds: 0 };
-      }
-      transactions.push({ id: doc.id, ...data });
-    });
-
-    console.log("📜 Retrieved transactions:", transactions);
-    return transactions;
-  } catch (error) {
-    console.error("❌ Error fetching transactions:", error);
-    return [];
-  }
-}
-
-// Process a transaction and store it in Firebase
-export const processTransaction = async function (amount, cardDetails) {
-  console.log("Final userInput before processing:", cardDetails);
-  state.currentStatus = "processing";
-
-  // Debugging values before validation
-  console.log("🔍 Debugging values before validation:");
-  console.log("cardNumber:", cardDetails.cardNumber);
-  console.log("expiryDate:", cardDetails.expiryDate);
-  console.log("cvv:", cardDetails.cvv);
-  console.log("amount:", amount);
-
-  if (
-    !validateCardNumber(cardDetails.cardNumber) ||
-    !validateExpiryDate(cardDetails.expiryDate) ||
-    !validateCVV(cardDetails.cvv, cardDetails.cardNumber)
-  ) {
-    state.currentStatus = "error";
-    throw new Error("Invalid payment details");
-  }
-
-  const transaction = {
-    amount,
-    cardType: identifyCardType(cardDetails.cardNumber),
-    status: "approved",
-    timestamp: new Date().toLocaleString(),
-  };
-
-  await saveTransaction(cardDetails.cardNumber, cardDetails.expiryDate, amount);
-  state.transactions.push(transaction);
-  state.currentStatus = "success";
-};
-
-// Handle the overall payment process// Call this after processing payment is successful
+// Handle the payment process
 export async function handlePayment(userInput) {
   try {
+    state.currentStatus = "processing";
     console.log("✅ Processing payment with:", userInput);
 
-    // Save the transaction to Firestore
-    const docRef = await addDoc(collection(db, "transactions"), {
-      cardNumber: userInput.cardNumber.slice(-4), // Store only last 4 digits
-      amount: userInput.amount,
-      timestamp: serverTimestamp(),
-    });
+    // Validate payment details
+    const validation = validatePaymentDetails(userInput);
+    if (!validation.valid) {
+      state.currentStatus = "error";
+      throw new Error(validation.message);
+    }
 
-    console.log("✅ Transaction saved with ID:", docRef.id);
+    // Save transaction and get updated transactions
+    await firebaseOperations.saveTransaction(userInput);
+    state.currentStatus = "success";
 
-    // 🔥 Fetch updated transactions
-    return await getTransactions(); // 👈 Return transactions instead of updating UI directly
+    // Return the updated transactions
+    return await firebaseOperations.getTransactions();
   } catch (error) {
+    state.currentStatus = "error";
     console.error("❌ Payment failed:", error.message);
-    throw error; // Ensure errors are handled in the controller
+    throw error;
   }
 }
 
-export const clearTransactions = async () => {
-  try {
-    const querySnapshot = await getDocs(collection(db, "transactions"));
-    const deletePromises = querySnapshot.docs.map((docSnap) =>
-      deleteDoc(doc(db, "transactions", docSnap.id))
-    );
-    await Promise.all(deletePromises);
+// Export getTransactions and clearTransactions directly from firebaseOperations
+export const { getTransactions, clearTransactions } = firebaseOperations;
 
-    // ✅ Reset state without directly referencing model
-    state.userInput = {
-      cardNumber: "",
-      expiryDate: "",
-      cvv: "",
-      amount: null,
-    };
-
-    console.log("✅ All transactions deleted & state reset!");
-  } catch (err) {
-    console.error("❌ Error deleting transactions:", err);
-  }
+// Reset state to initial values
+export const resetState = () => {
+  state.userInput = {
+    cardNumber: "",
+    expiryDate: "",
+    cvv: "",
+    amount: null,
+  };
+  state.currentStatus = "idle";
 };
