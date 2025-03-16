@@ -1,4 +1,29 @@
-firebase.js
-vite.config.js
-node_modules
+# Node modules (do not push)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
+# Parcel cache & build files
+.parcel-cache/
+dist/
+
+# Vite cache & build files
+.vite/
+.vitepress/dist/
+vite.config.js
+
+
+# Environment variables (keep secrets safe)
+.env
+.env.local
+.env.*.local
+
+# OS-specific files (macOS & Windows)
+.DS_Store
+Thumbs.db
+
+# IDE/editor settings (optional)
+.vscode/
+.idea/
+*.log
